@@ -49,6 +49,7 @@ func benchmark() {
 
                 // Measure response time
                 responseTime := time.Since(startTime)
+                fmt.Println(responseTime)
 
                 // Collect response time statistics
                 // ... (implement later)
