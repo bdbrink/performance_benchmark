@@ -74,6 +74,7 @@ func benchmark() {
 func trackResourceUsage() {
     var beginningMem runtime.MemStats
     runtime.ReadMemStats(&beginningMem)
+    startTime := time.Now()
 
     go func() {
         for {
