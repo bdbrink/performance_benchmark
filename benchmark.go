@@ -26,7 +26,7 @@ func main() {
         return
     }
 
-    // Benchmark function
+    go trackResourceUsage()
     benchmark()
 }
 
