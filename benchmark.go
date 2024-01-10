@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"runtime"
 	"sync"
 	"time"
 )
@@ -66,4 +67,35 @@ func benchmark() {
 
     wg.Wait()
 
+}
+
+func trackResourceUsage() {
+    var beginningMem runtime.MemStats
+    runtime.ReadMemStats(&beginningMem)
+
+    go func() {
+        for {
+            // Collect CPU usage
+            cpuUsage, err := cpu.Percent(time.Second, false)
+            if err != nil {
+                fmt.Println("Error getting CPU usage:", err)
+                continue
+            }
+
+            // Collect memory usage
+            var currentMem runtime.MemStats
+            runtime.ReadMemStats(&currentMem)
+
+            // Print or save resource usage metrics
+            fmt.Printf("CPU Usage: %.2f%%\n", cpuUsage[0])
+            fmt.Printf("Memory Usage: %d MB\n", currentMem.Alloc/1024/1024)
+
+            // Check if benchmark duration has elapsed
+            if time.Since(startTime) > *duration {
+                break
+            }
+
+            time.Sleep(time.Second) // Adjust interval as needed
+        }
+    }()
 }
