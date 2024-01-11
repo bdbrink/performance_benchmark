@@ -33,11 +33,10 @@ func main() {
 
 func benchmark() {
     startTime := time.Now()
-
     var responseTimes []time.Duration
     var successfulRequests int
     var failedRequests int
-    
+
     var wg sync.WaitGroup
     wg.Add(*concurrency)
 
@@ -51,18 +50,17 @@ func benchmark() {
 
                 // Error handling
                 if err != nil {
+                    failedRequests++
                     fmt.Println("Error:", err)
                     continue
                 }
 
                 // Measure response time
                 responseTime := time.Since(startTime)
-                fmt.Println(responseTime)
-
-                // Collect response time statistics
-                // ... (implement later)
+                responseTimes = append(responseTimes, responseTime)
 
                 resp.Body.Close()
+                successfulRequests++
 
                 // Check if benchmark duration has elapsed
                 if time.Since(startTime) > *duration {
@@ -85,7 +83,23 @@ func benchmark() {
     }
     mean /= time.Duration(len(responseTimes))
 
+    median := responseTimes[len(responseTimes)/2]
+    p95 := responseTimes[int(0.95*float64(len(responseTimes)))]
+
+    fmt.Printf("\nResponse Time Statistics:\n")
+    fmt.Printf("Mean: %v\n", mean)
+    fmt.Printf("Median: %v\n", median)
+    fmt.Printf("95th Percentile: %v\n", p95)
+
+    // Calculate and print throughput
+    throughput := float64(successfulRequests) / duration.Seconds()
+    fmt.Printf("\nThroughput: %.2f requests/second\n", throughput)
+
+    // Print error statistics
+    fmt.Printf("\nError Statistics:\n")
+    fmt.Printf("Failed Requests: %d\n", failedRequests)
 }
+
 
 func trackResourceUsage() {
     var beginningMem runtime.MemStats
