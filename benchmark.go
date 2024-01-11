@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"sort"
 	"sync"
 	"time"
 
@@ -33,6 +34,7 @@ func main() {
 func benchmark() {
     startTime := time.Now()
 
+    var responseTimes []time.Duration
     var wg sync.WaitGroup
     wg.Add(*concurrency)
 
@@ -68,6 +70,17 @@ func benchmark() {
     }
 
     wg.Wait()
+
+    // Calculate and print response time statistics
+    sort.Slice(responseTimes, func(i, j int) bool {
+        return responseTimes[i] < responseTimes[j]
+    })
+
+    mean := time.Duration(0)
+    for _, rt := range responseTimes {
+        mean += rt
+    }
+    mean /= time.Duration(len(responseTimes))
 
 }
 
