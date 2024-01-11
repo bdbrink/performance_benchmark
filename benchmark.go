@@ -35,6 +35,9 @@ func benchmark() {
     startTime := time.Now()
 
     var responseTimes []time.Duration
+    var successfulRequests int
+    var failedRequests int
+    
     var wg sync.WaitGroup
     wg.Add(*concurrency)
 
