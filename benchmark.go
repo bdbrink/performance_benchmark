@@ -29,7 +29,8 @@ func main() {
     }
 
     go trackResourceUsage()
-    benchmark()
+    go benchmark()
+    go monitorNetwork()
 }
 
 func benchmark() {
