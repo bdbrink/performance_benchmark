@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/http/pprof"
 	"runtime"
 	"sort"
 	"sync"
@@ -132,3 +133,46 @@ func trackResourceUsage() {
         }
     }()
 }
+
+func monitorNetwork() {
+    var wg sync.WaitGroup
+    wg.Add(1)
+
+    go func() {
+        defer wg.Done()
+
+        startTime := time.Now()
+        var bytesSent int64
+        var bytesReceived int64
+        var connectionsOpened int64
+        var connectionErrors int64
+
+        for {
+            // Use net package functions to get network metrics
+            // (Implementation depends on your specific needs)
+
+            // Example using net/http/pprof:
+            pprofStats := new(pprof.Profile).Count()
+            bytesSent += pprofStats.BytesSent
+            bytesReceived += pprofStats.BytesReceived
+            connectionsOpened += pprofStats.ConnsCreated
+
+            // Print or save network metrics
+            fmt.Printf("\nNetwork Metrics:\n")
+            fmt.Printf("Bytes Sent: %d\n", bytesSent)
+            fmt.Printf("Bytes Received: %d\n", bytesReceived)
+            fmt.Printf("Connections Opened: %d\n", connectionsOpened)
+            fmt.Printf("Connection Errors: %d\n", connectionErrors)
+
+            // Check if benchmark duration has elapsed
+            if time.Since(startTime) > *duration {
+                break
+            }
+
+            time.Sleep(time.Second) // Adjust interval as needed
+        }
+    }()
+
+    wg.Wait()
+}
+
