@@ -86,12 +86,12 @@ func benchmark() {
     mean /= time.Duration(len(responseTimes))
 
     median := responseTimes[len(responseTimes)/2]
-    p95 := responseTimes[int(0.95*float64(len(responseTimes)))]
+    p99 := responseTimes[int(0.99*float64(len(responseTimes)))]
 
     fmt.Printf("\nResponse Time Statistics:\n")
     fmt.Printf("Mean: %v\n", mean)
     fmt.Printf("Median: %v\n", median)
-    fmt.Printf("95th Percentile: %v\n", p95)
+    fmt.Printf("99th Percentile: %v\n", p99)
 
     // Calculate and print throughput
     throughput := float64(successfulRequests) / duration.Seconds()
@@ -149,7 +149,9 @@ func monitorNetwork() {
         var connectionErrors int64
 
         for {
-            pprofStats := pprof.Handler().ServeHTTP(nil, nil)
+
+            // Example using net/http/pprof:
+            pprofStats := new(pprof.Profile).Count()
             bytesSent += pprofStats.BytesSent
             bytesReceived += pprofStats.BytesReceived
             connectionsOpened += pprofStats.ConnsCreated
@@ -172,3 +174,4 @@ func monitorNetwork() {
 
     wg.Wait()
 }
+
