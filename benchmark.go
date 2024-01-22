@@ -149,11 +149,7 @@ func monitorNetwork() {
         var connectionErrors int64
 
         for {
-            // Use net package functions to get network metrics
-            // (Implementation depends on your specific needs)
-
-            // Example using net/http/pprof:
-            pprofStats := new(pprof.Profile).Count()
+            pprofStats := pprof.Handler().ServeHTTP(nil, nil)
             bytesSent += pprofStats.BytesSent
             bytesReceived += pprofStats.BytesReceived
             connectionsOpened += pprofStats.ConnsCreated
@@ -176,4 +172,3 @@ func monitorNetwork() {
 
     wg.Wait()
 }
-
