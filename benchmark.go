@@ -19,6 +19,9 @@ var (
     server   = flag.String("server", "", "URL of the server to benchmark")
     concurrency = flag.Int("concurrency", 10, "Number of concurrent requests")
     duration = flag.Duration("duration", 10*time.Second, "Duration of the benchmark test")
+    method       = flag.String("method", "GET", "HTTP method to use")
+    headers      = flag.String("headers", "", "Headers to include in the request (comma-separated key=value pairs)")
+    payload      = flag.String("payload", "", "Payload to send with the request")
 )
 
 func main() {
