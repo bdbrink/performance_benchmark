@@ -33,6 +33,14 @@ func main() {
         return
     }
 
+    req, err := createRequest()
+    if err != nil {
+        fmt.Println("Error creating request:", err)
+        return
+    }
+    resp, err := http.DefaultClient.Do(req)
+    fmt.Println(resp)
+
     go trackResourceUsage()
     go benchmark()
     go monitorNetwork()
