@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"net/http"
 	"net/http/pprof"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -175,3 +177,25 @@ func monitorNetwork() {
     wg.Wait()
 }
 
+func createRequest() (*http.Request, error) {
+    // Parse headers into a map
+    headersMap := make(map[string]string)
+    if *headers != "" {
+        for _, pair := range strings.Split(*headers, ",") {
+            kv := strings.Split(pair, "=")
+            if len(kv) == 2 {
+                headersMap[kv[0]] = kv[1]
+            }
+        }
+    }
+
+    // Create the request with customization
+    req, err := http.NewRequest(*method, *server, bytes.NewBufferString(*payload))
+    if err != nil {
+        return nil, err
+    }
+    for key, value := range headersMap {
+        req.Header.Set(key, value)
+    }
+    return req, nil
+}
