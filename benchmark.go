@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"gonum/plot/vg"
 	"net/http"
 	"net/http/pprof"
 	"runtime"
@@ -12,6 +13,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gonum/plot"
+	"github.com/gonum/plot/plotter"
 	"github.com/shirou/gopsutil/cpu"
 )
 
@@ -209,4 +212,46 @@ func createRequest() (*http.Request, error) {
         req.Header.Set(key, value)
     }
     return req, nil
+}
+
+func plotResponseTimes(responseTimes []time.Duration, filename string) {
+    p, err := plot.New()
+    if err != nil {
+        fmt.Println("Error creating plot:", err)
+        return
+    }
+
+    p.Title.Text = "Response Time Distribution"
+    p.X.Label.Text = "Response Time (ms)"
+    p.Y.Label.Text = "Count"
+
+    // Convert durations to milliseconds
+    var msValues []float64
+    for _, rt := range responseTimes {
+        msValues = append(msValues, float64(rt.Milliseconds()))
+    }
+
+    // Create and customize histogram
+    hist, err := plotter.NewHist(msValues, 20) // 20 bins
+    if err != nil {
+        fmt.Println("Error creating histogram:", err)
+        return
+    }
+    hist.Color = plot.Gray{0.4}
+    hist.FillStyle = plotter.RectangleStyle{
+        Pattern:    plotter.Gray{},
+        StrokeColor: plot.Gray{0},
+        StrokeWidth: vg.Points(0.5),
+    }
+
+    // Add histogram to the plot
+    p.Add(hist)
+
+    // Save the plot as a PNG image
+    if err := p.Save(filename, svg.Inches(8), svg.Inches(4)); err != nil {
+        fmt.Println("Error saving plot:", err)
+        return
+    }
+
+    fmt.Printf("Saved response time distribution to %s\n", filename)
 }
