@@ -51,58 +51,59 @@ func main() {
 
 func benchmark() {
     startTime := time.Now()
-    var responseTimes []time.Duration
-    var successfulRequests int
-    var failedRequests int
 
+    // Collect and sort response times
     var wg sync.WaitGroup
-    wg.Add(*concurrency)
+    wg.Add(1)
+    var allResponseTimes []time.Duration
 
-    for i := 0; i < *concurrency; i++ {
-        go func() {
-            defer wg.Done()
-
-            for {
-                // Send request to the server
-                resp, err := http.Get(*server)
-
-                // Error handling
-                if err != nil {
-                    failedRequests++
-                    fmt.Println("Error:", err)
-                    continue
-                }
-
-                // Measure response time
-                responseTime := time.Since(startTime)
-                responseTimes = append(responseTimes, responseTime)
-
-                resp.Body.Close()
-                successfulRequests++
-
-                // Check if benchmark duration has elapsed
-                if time.Since(startTime) > *duration {
-                    break
-                }
+    go func() {
+        defer wg.Done()
+        for {
+            req, err := createRequest() // Use the customizable request function
+            if err != nil {
+                continue
             }
-        }()
-    }
+            resp, err := http.DefaultClient.Do(req)
+            if err != nil {
+                continue
+            }
+
+            startTime := time.Now()
+            err = resp.Body.Close()
+            if err != nil {
+                continue
+            }
+            responseTime := time.Since(startTime)
+
+            // Thread-safe access to the slice
+            wg.Add(1)
+            go func(rt time.Duration) {
+                defer wg.Done()
+                allResponseTimes = append(allResponseTimes, rt)
+            }(responseTime)
+
+            // Check if benchmark duration has elapsed
+            if time.Since(startTime) > *duration {
+                break
+            }
+        }
+    }()
 
     wg.Wait()
-
-    // Calculate and print response time statistics
-    sort.Slice(responseTimes, func(i, j int) bool {
-        return responseTimes[i] < responseTimes[j]
+    sort.Slice(allResponseTimes, func(i, j int) bool {
+        return allResponseTimes[i] < allResponseTimes[j]
     })
 
+    // Calculate and print response time statistics
     mean := time.Duration(0)
-    for _, rt := range responseTimes {
+    for _, rt := range allResponseTimes {
         mean += rt
     }
-    mean /= time.Duration(len(responseTimes))
+    mean /= time.Duration(len(allResponseTimes))
 
-    median := responseTimes[len(responseTimes)/2]
-    p99 := responseTimes[int(0.99*float64(len(responseTimes)))]
+    median := allResponseTimes[len(allResponseTimes)/2]
+    p99 := allResponseTimes[int(0.99*float64(len(allResponseTimes)))]
 
     fmt.Printf("\nResponse Time Statistics:\n")
     fmt.Printf("Mean: %v\n", mean)
@@ -110,12 +111,15 @@ func benchmark() {
     fmt.Printf("99th Percentile: %v\n", p99)
 
     // Calculate and print throughput
-    throughput := float64(successfulRequests) / duration.Seconds()
+    throughput := float64(len(allResponseTimes)) / duration.Seconds() // Use total request count
     fmt.Printf("\nThroughput: %.2f requests/second\n", throughput)
 
     // Print error statistics
     fmt.Printf("\nError Statistics:\n")
-    fmt.Printf("Failed Requests: %d\n", failedRequests)
+    fmt.Printf("Failed Requests: %d\n", len(allResponseTimes)-successfulRequests) // Calculate based on total count
+
+    // Plot the response time distribution
+    plotResponseTimes(allResponseTimes, "response_times.png")
 }
 
 
