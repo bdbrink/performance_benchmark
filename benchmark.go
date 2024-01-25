@@ -259,3 +259,30 @@ func plotResponseTimes(responseTimes []time.Duration, filename string) {
 
     fmt.Printf("Saved response time distribution to %s\n", filename)
 }
+
+func burstTest() {
+    fmt.Println("Starting burst test...")
+
+    // Burst parameters
+    burstDuration := 5 * time.Second
+    burstConcurrency := 100
+    restDuration := 10 * time.Second
+
+    startTime := time.Now()
+    for {
+        // Burst phase
+        fmt.Println("Starting burst phase...")
+        time.Sleep(burstDuration)
+
+        // Rest phase
+        fmt.Println("Starting rest phase...")
+        time.Sleep(restDuration)
+
+        // Check if overall duration has elapsed
+        if time.Since(startTime) > *duration {
+            break
+        }
+    }
+
+    fmt.Println("Burst test complete.")
+}
