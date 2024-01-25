@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"gonum/plot/vg"
 	"net/http"
 	"net/http/pprof"
 	"runtime"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/gonum/plot"
 	"github.com/gonum/plot/plotter"
+	"github.com/gonum/plot/vg"
 	"github.com/shirou/gopsutil/cpu"
 )
 
